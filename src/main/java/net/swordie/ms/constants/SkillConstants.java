@@ -4048,7 +4048,7 @@ public class SkillConstants {
             return true;
         }
 
-        return si.isNotIncBuffDuration() || si.getHyper() != 0 || si.getvSkill() != 0 || skillId < 0; // Item Buff
+        return   skillId < 0; // Item Buff
     }
 
     public static boolean isNoCooltimeReductionAppliedSkill(int skillId) {

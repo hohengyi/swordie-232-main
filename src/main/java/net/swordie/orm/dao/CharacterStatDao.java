@@ -166,7 +166,7 @@ public class CharacterStatDao implements SworDao<CharacterStat> {
                 characterStat.getLevel(),
                 characterStat.getJob(),
                 characterStat.getStr(),
-                characterStat.getDex(),
+                characterStat.getDexInt(),
                 characterStat.getInt(),
                 characterStat.getLuk(),
                 characterStat.getHp(),

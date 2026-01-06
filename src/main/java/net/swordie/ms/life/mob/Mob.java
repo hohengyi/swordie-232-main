@@ -610,6 +610,24 @@ public class Mob extends Life {
         }
         Set<DropInfo> dropInfoSet = new HashSet<>(getDrops());
 
+        boolean isArcaneRiver = getField().getInfo().getBarrierArc() > 0;
+
+        if (isArcaneRiver) {
+            // Remove all Arcane Symbol drops
+            dropInfoSet.removeIf(drop ->
+                    drop.getItemID() >= 1712000 && drop.getItemID() <= 1712006
+            );
+
+            // Add Arcane Symbol Selector Coupon
+            dropInfoSet.add(new DropInfo(
+                    2630437, // define this
+                    300, // 100% chance (adjust if needed)
+                    1, // min
+                    1 // max
+            ));
+        }
+
+
         // Add drops based on loot pool of the mob
         dropInfoSet.addAll(BossLootConstants.getLootPoolByTemplateId(getTemplateId()));
 

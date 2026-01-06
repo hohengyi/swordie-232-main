@@ -9,7 +9,7 @@ public class CustomConstants {
     public static final int BUFFED_MOB_SCALE = 120; //Default scale is 100
     public static final int BUFFED_MOB_DAMAGE_MULTIPLIER = 10;
 
-    public static final boolean AUTO_AGGRO = false;
+    public static final boolean AUTO_AGGRO = true;
     public static final int PET_VAC = 4030003;
     public static final int PET_VAC_DELAY = 5000; // in millis
     public static final int PET_VAC_SKILL_ID = 899999990;

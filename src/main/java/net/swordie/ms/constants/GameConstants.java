@@ -410,7 +410,7 @@ public class GameConstants {
     // Skills
     public static final int TIME_LEAP_QR_KEY = 99996; // Quest where personal Time Leap CDs get stored
     public static final int COOLTIME_THRESHOLD_MS = 10000; // When switch from reduceCooltime to reduceCooltimeR  is
-    public static final int NO_REDUCE_COOLTIME_CD_MS = 5000; // if cd is below  this  cdReductions wont apply
+    public static final int NO_REDUCE_COOLTIME_CD_MS = 50000; // if cd is below  this  cdReductions wont apply
 
     //Merchant
     public static final int MAX_MERCHANT_VISITORS = 6;

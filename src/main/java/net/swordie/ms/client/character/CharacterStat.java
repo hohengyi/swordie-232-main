@@ -100,8 +100,13 @@ public class CharacterStat {
     }
 
     public short getDex() {
-        return (short) dex;
+        return (short) Math.min(dex, Short.MAX_VALUE);
     }
+
+    public int getDexInt() {
+        return dex;
+    }
+
 
     public int getHp() {
         return hp;

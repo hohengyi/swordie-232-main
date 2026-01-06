@@ -316,7 +316,21 @@ public class Summon extends Life {
         if (SkillConstants.isNoBuffDurationAppliedSkill(skillID)) {
             summon.setSummonTerm(si.getValue(SkillStat.time, slv));
         } else {
-            summon.setSummonTerm((int) ((si.getValue(SkillStat.time, slv) * chr.getTotalStat(BaseStat.summonTimeR)) / 100D));
+//            summon.setSummonTerm((int) ((si.getValue(SkillStat.time, slv) * chr.getTotalStat(BaseStat.summonTimeR)) / 100D));
+            int baseDuration = si.getValue(SkillStat.time, slv);
+
+            // bonus-only value (e.g. 20, 50, 405)
+            int summonTimeR = chr.getTotalStat(BaseStat.summonTimeR);
+            int rbBonus = chr.getTotalRebirthStatBonus();
+
+            // TOTAL bonus
+            int totalBonus = summonTimeR + rbBonus;
+
+            // Apply correctly
+            int finalDuration = (int) (baseDuration * (100 + totalBonus) / 100D);
+
+            summon.setSummonTerm(finalDuration);
+
         }
         summon.setCharLevel(chr.getLevel());
         summon.setPosition(chr.getPosition().deepCopy());

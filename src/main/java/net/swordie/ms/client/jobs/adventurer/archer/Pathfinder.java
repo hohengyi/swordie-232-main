@@ -18,10 +18,7 @@ import net.swordie.ms.connection.packet.*;
 import net.swordie.ms.constants.JobConstants;
 import net.swordie.ms.constants.MobConstants;
 import net.swordie.ms.constants.SkillConstants;
-import net.swordie.ms.enums.AssistType;
-import net.swordie.ms.enums.ForceAtomEnum;
-import net.swordie.ms.enums.MoveAbility;
-import net.swordie.ms.enums.TSIndex;
+import net.swordie.ms.enums.*;
 import net.swordie.ms.life.AffectedArea;
 import net.swordie.ms.life.Summon;
 import net.swordie.ms.life.mob.Mob;
@@ -45,7 +42,7 @@ import static net.swordie.ms.client.character.skills.SkillStat.*;
 import static net.swordie.ms.client.character.skills.temp.CharacterTemporaryStat.*;
 
 public class Pathfinder extends Archer {
-    private static final int MAX_RELIC_GAUGE = 1000;
+//    private static final int MAX_RELIC_GAUGE = 1000;
 
     public static final int ANCIENT_CURSE = 1298;
     public static final int RETURN_TO_PARTEM = 1297;
@@ -144,6 +141,17 @@ public class Pathfinder extends Archer {
     private long lastRelicUnboundAttack = Long.MIN_VALUE;
     private static final int intervalRelicUnboundBurst = 1000; // ms
 
+    private int getMaxRelicGauge() {
+        int base = 1000;
+
+        int rbBonus = chr.getTotalRebirthStatBonus();
+        // decide scaling formula ↓
+
+        int extra = rbBonus * 10; // example: +10 per RB
+        return base + extra;
+    }
+
+
 
     public Pathfinder(Char chr) {
         super(chr);
@@ -229,12 +237,22 @@ public class Pathfinder extends Archer {
         TemporaryStatManager tsm = chr.getTemporaryStatManager();
         TemporaryStatBase tsb = tsm.getTSBByTSIndex(TSIndex.RelicGauge);
         int gauge = tsb.getNOption();
+
         gauge += amount;
+//        if (gauge < 0) {
+//            gauge = 0;
+//        } else if (gauge > MAX_RELIC_GAUGE) {
+//            gauge = MAX_RELIC_GAUGE;
+//        }
+        int maxGauge = getMaxRelicGauge();
+
         if (gauge < 0) {
             gauge = 0;
-        } else if (gauge > MAX_RELIC_GAUGE) {
-            gauge = MAX_RELIC_GAUGE;
+        } else if (gauge > maxGauge) {
+            gauge = maxGauge;
         }
+
+
         tsb.setNOption(gauge);
         tsm.putCharacterStatValue(RelicGauge, tsb.getOption());
         tsm.sendSetStatPacket();
@@ -255,13 +273,13 @@ public class Pathfinder extends Archer {
         TemporaryStatManager tsm = chr.getTemporaryStatManager();
         Option o = new Option();
         int newAmount = amount + getAncientGuidanceGauge();
-        if (newAmount > MAX_RELIC_GAUGE) {
+        if (newAmount > getMaxRelicGauge()) {
             resetAncientGuidanceGauge();
             giveAncientGuidanceBuff();
         } else {
             o.nOption = 1;
             o.xOption = 1;
-            o.yOption = newAmount > MAX_RELIC_GAUGE ? MAX_RELIC_GAUGE : newAmount < 0 ? 0 : newAmount;
+            o.yOption = newAmount > getMaxRelicGauge() ? getMaxRelicGauge() : newAmount < 0 ? 0 : newAmount;
             tsm.putCharacterStatValue(AncientGuidance, o);
             tsm.sendSetStatPacket();
         }
@@ -296,6 +314,16 @@ public class Pathfinder extends Archer {
         chr.getField().broadcastPacket(UserRemote.effect(chr.getId(), Effect.skillUse(skill.getSkillId(), chr.getLevel(), slv, 0)));
     }
 
+    private int getEffectiveCardinalTorrentCooldown(int baseMs) {
+        int rbCdr = chr.getTotalRebirthStatBonus(); // % CDR
+        if (rbCdr <= 0) {
+            return baseMs;
+        }
+        int reduced = (int) (baseMs * (1 - rbCdr / 100D));
+        return Math.max(500, reduced); // safety floor
+    }
+
+
     public void incrementSwiftStrikeCharge() {
         if (!chr.hasSkill(CARDINAL_TORRENT) ) {
             return;
@@ -304,21 +332,48 @@ public class Pathfinder extends Archer {
         Skill skill = chr.getSkill(CARDINAL_TORRENT);
         SkillInfo si = SkillData.getSkillInfoById(skill.getSkillId());
         int slv = skill.getCurrentLevel();
-        int maxStack = si.getValue(y, slv);
-        int count = 1;
-        if (tsm.hasStat(StackOverTimeSkill)) {
-            count = getSwiftStrikeCharge();
+//        int maxStack = si.getValue(y, slv);
+//        int count = 1;
+//        if (tsm.hasStat(StackOverTimeSkill)) {
+//            count = getSwiftStrikeCharge();
+//            if (count < maxStack) {
+//                count++;
+//            }
+//        }
+        int baseMaxStack = si.getValue(y, slv);
+        // current charge
+        int count = tsm.hasStat(StackOverTimeSkill)
+                ? getSwiftStrikeCharge()
+                : 0;
+
+        // === STYLE A: linear extra charges ===
+        int rbCdr = chr.getTotalRebirthStatBonus(); // %
+        int bonusCharges = rbCdr / 10;              // tune divisor
+        int totalIncrement = 1 + bonusCharges;
+
+        int bonusMaxStack = rbCdr / 10; // tune this
+
+        int maxStack = baseMaxStack + bonusMaxStack;
+
+
+        // apply increment
+        for (int i = 0; i < totalIncrement; i++) {
             if (count < maxStack) {
                 count++;
+            } else {
+                break;
             }
         }
         updateSwiftStrikeCharge(count);
         if (!hasAwakenedRelic()) {
-            chr.addSkillCoolTime(SkillConstants.CARDINAL_TORRENT_COOLDOWN, si.getValue(s2, slv) * 1000);
-//        chr.setSkillCooldown(
-//                SkillConstants.CARDINAL_TORRENT_COOLDOWN,
-//                chr.getSkillLevel(SkillConstants.CARDINAL_TORRENT_COOLDOWN)
-//        );
+//            chr.addSkillCoolTime(SkillConstants.CARDINAL_TORRENT_COOLDOWN, si.getValue(s2, slv) * 1000);
+            int baseCdMs = si.getValue(s2, slv) * 1000;
+            int finalCdMs = getEffectiveCardinalTorrentCooldown(baseCdMs);
+
+            chr.addSkillCoolTime(
+                    SkillConstants.CARDINAL_TORRENT_COOLDOWN,
+                    finalCdMs
+            );
 
         } else {
             chr.addSkillCoolTime(SkillConstants.CARDINAL_TORRENT_COOLDOWN, 3 * 1000); // Awakened Relic Buff effect
@@ -674,24 +729,25 @@ public class Pathfinder extends Archer {
                 break;
             case CARDINAL_TORRENT:
             case CARDINAL_TORRENT_ADVANCED:
-//                if (getSwiftStrikeCharge() > 0) {
-//                    updateSwiftStrikeCharge(getSwiftStrikeCharge() - 1);
-//                } else {
-//                    chr.chatMessage("You don't have enough Swiftstrike Charges to use this.");
-//                }
+                if (getSwiftStrikeCharge() > 0) {
+                    updateSwiftStrikeCharge(getSwiftStrikeCharge() - 1);
+                } else {
+                    chr.chatMessage("You don't have enough Swiftstrike Charges to use this.");
+                }
 
                 lastSkillID = skillId;
                 break;
             case RAVEN_TEMPEST: // TODO  Re-Summon once RavenTempest is done
-                tsm.removeStatsBySkill(RAVEN);
-                tsm.removeStatsBySkill(FURY_OF_THE_WILD);
+//                tsm.removeStatsBySkill(RAVEN);
+//                tsm.removeStatsBySkill(FURY_OF_THE_WILD);
+
                 break;
             case AWAKENED_RELIC:
                 o1.nOption = 1;
                 o1.rOption = skillId;
                 o1.tOption = si.getValue(time, slv);
                 tsm.putCharacterStatValue(Unk188_492, o1); // Awakened Relic placeholder
-                addRelicGauge(MAX_RELIC_GAUGE);
+                addRelicGauge(getMaxRelicGauge());
                 break;
             case CURSEBOUND_ENDURANCE:
                 o1.nOption = si.getValue(s, slv);

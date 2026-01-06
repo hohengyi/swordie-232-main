@@ -1496,7 +1496,7 @@ public class Char {
             case str:
                 return cs.getStr();
             case dex:
-                return cs.getDex();
+                return cs.getDexInt();
             case inte:
                 return cs.getInt();
             case luk:
@@ -4579,6 +4579,8 @@ public class Char {
             case cr:
             case crDmg:
             case runeBuffTimerR:
+            case dotBuffTimeR:
+            case comboKillOrbExpR:
                 stat += getTotalRebirthStatBonus();
                 break;
 
@@ -6557,14 +6559,14 @@ public class Char {
         this.showDamageCalc = showDamageCalc;
     }
 
-    public boolean canEquip(Item item) {
+    public boolean canitEquip(Item item) {
         if (item instanceof Equip && !((Equip) item).isVestige()) {
             var info = ((Equip) item).getInfo();
             int lv = getLevel();
             CharacterStat cs = getAvatarData().getCharacterStat();
             int str = cs.getStr();
             int inte = cs.getInt();
-            int dex = cs.getDex();
+            int dex = cs.getDexInt();
             int luk = cs.getLuk();
             short job = getJob();
             short rJob = info.getrJob();

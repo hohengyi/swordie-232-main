@@ -92,7 +92,7 @@ public class MobGen extends Life {
 
         field.spawnLife(mob, null);
         if (CustomConstants.AUTO_AGGRO && FieldConstants.isAggroField(field.getId())) {
-            field.broadcastPacket(MobPool.forceChase(mob.getObjectId(), false));
+            field.broadcastPacket(MobPool.forceChase(mob.getObjectId(), true));
         }
 //        setNextPossibleSpawnTime(System.currentTimeMillis() + (getMob().getMobTime() * 1000));
 //        int mobTimeSeconds = getMob().getMobTime();

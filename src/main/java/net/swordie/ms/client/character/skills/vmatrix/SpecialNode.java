@@ -276,10 +276,10 @@ public class SpecialNode {
             case "reduceCooltime":
                 int reduceR = specialNode.getReduceR();
                 for (var skillId : chr.getSkillCoolTimes().keySet()) {
-                    if (!SkillConstants.isNoCooltimeReductionAppliedSkill(skillId)) {
-                        int decrease = (int) ((reduceR * chr.getRemainingCoolTime(skillId)) / 100D);
-                        chr.reduceSkillCoolTime(skillId, decrease);
-                    }
+//                    if (!SkillConstants.isNoCooltimeReductionAppliedSkill(skillId)) {
+                    int decrease = (int) ((reduceR * chr.getRemainingCoolTime(skillId)) / 100D);
+                    chr.reduceSkillCoolTime(skillId, decrease);
+//                    }
                 }
                 break;
             case "heal":

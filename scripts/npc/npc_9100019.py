@@ -15,6 +15,8 @@ scrolls = [
     [2532000, 30000],   # Safety Scroll
     [2049100, 2500],    # Chaos Scroll 60%
     [2049178, 5000],    # Incredible Chaos Scroll of Goodness 60%
+    [2046995, 10000],   # 9th Anniversary prime scroll for One handed weapon
+    [2047817, 10000],   # 9th Anniversary prime scroll for Two handed weapon
     [2049600, 50000],   # Innocence Scroll 70%
     [2049301, 10000],   # Equip Enhancement Scroll
     [2049300, 250000],  # Advanced Equip Enhancement Scroll

@@ -323,7 +323,7 @@ public class PlayerCommands {
 //            chr.updateStats();
 
             // Warp to Henesys (safe map)
-            chr.warp(100000000);
+//            chr.warp(100000000);
 
             // Save character
             charDao.saveOrUpdate(chr);
